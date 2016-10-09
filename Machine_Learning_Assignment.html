@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+
+<title>Executive Summary:</title>
+
+<script type="text/javascript">
+window.onload = function() {
+  var imgs = document.getElementsByTagName('img'), i, img;
+  for (i = 0; i < imgs.length; i++) {
+    img = imgs[i];
+    // center an image if it is the only element of its parent
+    if (img.parentElement.childElementCount === 1)
+      img.parentElement.style.textAlign = 'center';
+  }
+};
+</script>
+
+
+
+
+
+<style type="text/css">
+body, td {
+   font-family: sans-serif;
+   background-color: white;
+   font-size: 13px;
+}
+
+body {
+  max-width: 800px;
+  margin: auto;
+  padding: 1em;
+  line-height: 20px;
+}
+
+tt, code, pre {
+   font-family: 'DejaVu Sans Mono', 'Droid Sans Mono', 'Lucida Console', Consolas, Monaco, monospace;
+}
+
+h1 {
+   font-size:2.2em;
+}
+
+h2 {
+   font-size:1.8em;
+}
+
+h3 {
+   font-size:1.4em;
+}
+
+h4 {
+   font-size:1.0em;
+}
+
+h5 {
+   font-size:0.9em;
+}
+
+h6 {
+   font-size:0.8em;
+}
+
+a:visited {
+   color: rgb(50%, 0%, 50%);
+}
+
+pre, img {
+  max-width: 100%;
+}
+pre {
+  overflow-x: auto;
+}
+pre code {
+   display: block; padding: 0.5em;
+}
+
+code {
+  font-size: 92%;
+  border: 1px solid #ccc;
+}
+
+code[class] {
+  background-color: #F8F8F8;
+}
+
+table, td, th {
+  border: none;
+}
+
+blockquote {
+   color:#666666;
+   margin:0;
+   padding-left: 1em;
+   border-left: 0.5em #EEE solid;
+}
+
+hr {
+   height: 0px;
+   border-bottom: none;
+   border-top-width: thin;
+   border-top-style: dotted;
+   border-top-color: #999999;
+}
+
+@media print {
+   * {
+      background: transparent !important;
+      color: black !important;
+      filter:none !important;
+      -ms-filter: none !important;
+   }
+
+   body {
+      font-size:12pt;
+      max-width:100%;
+   }
+
+   a, a:visited {
+      text-decoration: underline;
+   }
+
+   hr {
+      visibility: hidden;
+      page-break-before: always;
+   }
+
+   pre, blockquote {
+      padding-right: 1em;
+      page-break-inside: avoid;
+   }
+
+   tr, img {
+      page-break-inside: avoid;
+   }
+
+   img {
+      max-width: 100% !important;
+   }
+
+   @page :left {
+      margin: 15mm 20mm 15mm 10mm;
+   }
+
+   @page :right {
+      margin: 15mm 10mm 15mm 20mm;
+   }
+
+   p, h2, h3 {
+      orphans: 3; widows: 3;
+   }
+
+   h2, h3 {
+      page-break-after: avoid;
+   }
+}
+</style>
+
+
+
+</head>
+
+<body>
+<h2>Executive Summary:</h2>
+
+<h3>The purpose of this exercise is to use predictive machine learning to predict how well a group of individuals performed a specific exercise.  Devices such as Jawbone &quot;Up&quot;, Nike &quot;FuelBand&quot; and Fitbit are making it possible to collect a large amount of data about personal activity.  People who use these devices regularly quantify how much of a particular activity they do, but they rarely quantify how well they do it.  In a study performed by Velloso, Bulling, Gellersen, Ugulino and Fuks, (see references), it does provide a measure, &quot;classe&quot;, (among many other variables) of how well 6 males, each perform one set of 10 repetitions of the Unilateral Dumbbell Bicep Curl in 5 different fashions: exactly according to specification (class A), throwing the elbows to the front (class B), lifting the dumbbell only halfway (class C), lowering the dumbbell only halfway (calls D) and throwing the hips to the front (class E).</h3>
+
+<h2>Data:</h2>
+
+<h3>The dataset referenced above is defined as the &quot;training&quot; dataset which the author will use to train predictive models against.  The overall training dataset will be divided into a training dataset and a cross-validation set.  Once the models have been trained against the training dataset and the most accurate method selected, then that method will be used against the cross-validation set to determine the predictive accuracy.  Given that the accuracy remains high (95% or better) then, and only then, will the model be used against the actual &quot;test&quot; data set.</h3>
+
+<h2>Cleaning the data:</h2>
+
+<h3>By looking at the training data there are multiple columns which either do not contain numerical data (ie &quot;N/A&quot;, &quot; &quot;, or 0) or data that are not applicable to the model (the first 7 columns).  All of these columns need to be eliminated from the final training data frame.  The testing data will require the same cleaning method.  The following histogram is a snap-shot of the training data:</h3>
+
+<pre><code class="r">#Clean training data
+trainnew &lt;- data.frame(dlTrain)
+trainnew &lt;-trainnew[ , ! apply(trainnew, 2, function(x) any(is.na(x)))]
+trainnew &lt;-trainnew[ , ! apply(trainnew, 2, function(x) any(x == &quot;&quot;))]
+trainnew &lt;-trainnew[ , ! apply(trainnew, 2, function(x) all(x == 0))]
+trainnew &lt;-trainnew[ , -(1:7), drop=FALSE]
+g&lt;-as.numeric(trainnew$classe)
+hist(g, main=&quot;Histogram of Classe Data&quot;, xlab=&quot;Classe (1=A, 2=B, 3=C, 4=D, 5=E)&quot;, border=&quot;blue&quot;, col=&quot;green&quot;, breaks=c(1,2,3,4,5))
+</code></pre>
+
+<p><img src="figure/unnamed-chunk-2-1.png" alt="plot of chunk unnamed-chunk-2"></p>
+
+<h2>Conduct Data Splitting:</h2>
+
+<h3>In order to begin the model-training process we need to randomly split the training data set into training (&quot;training&quot;) and cross-validation (&quot;cross_val&quot;).  I use a 75/25% split.</h3>
+
+<h2>Fit the model/ Train the model:</h2>
+
+<h3>This step utilizes both &quot;set.seed&quot; and cross-validation processes, as well as &quot;train&quot; and &quot;predict&quot; functions to determine the most accurate model to utilize.  The models which are evaluated against each other here are the &quot;Rpart&quot;, &quot;Random Forest&quot; and &quot;GBM&quot;.</h3>
+
+<h2>The accuracies of the models are as follows:</h2>
+
+<h3>R Part: 0.4978937</h3>
+
+<h3>Random Forest: 1</h3>
+
+<h3>GBM: 0.9734339</h3>
+
+<h3>Therefore, the Random Forest model appears to be the most accurate and will be used from here on.</h3>
+
+<h2>Predict the Out-of-Sample Error:</h2>
+
+<h3>This prediction entails using the RF model, cross-validation and the &quot;predict&quot; function to determine the model&#39;s accuracy and out-of-sample error against the cross-validation dataset.</h3>
+
+<pre><code>## Confusion Matrix and Statistics
+## 
+##           Reference
+## Prediction    A    B    C    D    E
+##          A 1395    0    0    0    0
+##          B    0  949    0    0    0
+##          C    0    0  855    0    0
+##          D    0    0    0  804    0
+##          E    0    0    0    0  901
+## 
+## Overall Statistics
+##                                      
+##                Accuracy : 1          
+##                  95% CI : (0.9992, 1)
+##     No Information Rate : 0.2845     
+##     P-Value [Acc &gt; NIR] : &lt; 2.2e-16  
+##                                      
+##                   Kappa : 1          
+##  Mcnemar&#39;s Test P-Value : NA         
+## 
+## Statistics by Class:
+## 
+##                      Class: A Class: B Class: C Class: D Class: E
+## Sensitivity            1.0000   1.0000   1.0000   1.0000   1.0000
+## Specificity            1.0000   1.0000   1.0000   1.0000   1.0000
+## Pos Pred Value         1.0000   1.0000   1.0000   1.0000   1.0000
+## Neg Pred Value         1.0000   1.0000   1.0000   1.0000   1.0000
+## Prevalence             0.2845   0.1935   0.1743   0.1639   0.1837
+## Detection Rate         0.2845   0.1935   0.1743   0.1639   0.1837
+## Detection Prevalence   0.2845   0.1935   0.1743   0.1639   0.1837
+## Balanced Accuracy      1.0000   1.0000   1.0000   1.0000   1.0000
+</code></pre>
+
+<h3>The accuracy of the prediction of out-of-sample error is 1.</h3>
+
+<h3>The out-of-sample error is 0</h3>
+
+<h3>Importance of variables in the model must be known for further regressive analysis and to determine the highest level of correlation between which variables and the variable (classe) that we want to predict.</h3>
+
+<pre><code>## [1] &quot;The top 5 variables in importance:&quot;
+</code></pre>
+
+<pre><code>##                     Overall
+## roll_belt         100.00000
+## pitch_forearm      67.32039
+## yaw_belt           52.64770
+## magnet_dumbbell_z  51.69843
+## pitch_belt         44.90532
+</code></pre>
+
+<h3>These results show high enough accuracy that we can use this same model/ method against the original test data set.  This test data set does not contain any &quot;Classe&quot; variables and the predictive machine learning model will give predicted values for classe.  These predicted values are as follows:</h3>
+
+<pre><code>##  [1] B A B A A E D B A A B C B A E E A B B B
+## Levels: A B C D E
+</code></pre>
+
+<h3>References:</h3>
+
+<h4>Velloso, E; Bulling, A; Gellersen, H; Ugulino, W; Fuks, H. &quot;Qualitative Activity Recognition of Weight Lifting Exercises&quot;, Proceedings of 4th International Conference in Cooperation with SIGHI. Stuttgart, GE, 2013</h4>
+
+</body>
+
+</html>
